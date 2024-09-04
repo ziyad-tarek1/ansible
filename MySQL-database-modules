@@ -1,0 +1,68 @@
+1. unarchive
+
+Module: unarchive
+Function: Unpacks a compressed archive file.
+Options:
+src: Source archive file.
+dest: Destination directory where the archive will be unpacked.
+copy: If yes, the archive file will be copied to the destination directory before unpacking.
+Example: unarchive: src=/tmp/mysql-5.6.35-linux-glibc2.5-x86_64.tar.gz dest=/tmp copy=yes
+2. command
+
+Module: command
+Function: Executes a shell command.
+Options:
+command: The command to execute.
+creates: A file or directory that the command will create. If the file/directory already exists, the command will not be executed.
+Examples:
+command: mv /tmp/mysql-5.6.35-linux-glibc2.5-x86_64 /usr/local/mysql
+command: /sbin/ldconfig
+3. file
+
+Module: file
+Function: Manages files and directories.
+Options:
+path: The path to the file or directory.
+state: The desired state of the file/directory (e.g., directory, file, absent).
+owner: The owner of the file/directory.
+group: The group of the file/directory.
+recurse: If yes, the ownership will be recursively changed for all files/directories within the specified path.
+Examples:
+file: path=/usr/local/mysql owner=mysql group=mysql recurse=yes
+file: path=/data/mysql/3306/{{ item }} state=directory owner=mysql group=mysql
+4. lineinfile
+
+Module: lineinfile
+Function: Adds or removes a line from a file.
+Options:
+dest: The destination file.
+line: The line to add or remove.
+Examples:
+lineinfile: dest=/etc/ld.so.conf line=/usr/local/mysql/lib/
+lineinfile: dest=/etc/profile line=export PATH=$PATH:/usr/local/mysql/bin/
+5. copy
+
+Module: copy
+Function: Copies a file.
+Options:
+src: The source file.
+dest: The destination file.
+Examples:
+copy: src=/etc/my.cnf dest=/etc/my.cnf
+copy: src=/etc/my.cnf dest=/usr/local/mysql/my.cnf
+6. shell
+
+Module: shell
+Function: Executes a shell command.
+Options:
+executable: The shell to use (e.g., /bin/bash).
+source: The file to source.
+Example: shell: executable=/bin/bash source=/etc/profile
+7. with_items
+
+Module: with_items
+Function: Loops over a list of items and executes a task for each item.
+Options:
+items: The list of items to loop over.
+Example: with_items: - data - logs - tmp
+These modules are used to perform various tasks such as unpacking archives, executing shell commands, managing files and directories, adding lines to files, copying files, and sourcing shell scripts.
