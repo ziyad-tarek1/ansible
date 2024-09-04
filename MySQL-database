@@ -1,0 +1,136 @@
+# Playbook to install and configure MySQL
+---
+- name: Download and unarchive MySQL tarball
+  unarchive:
+    src: /tmp/mysql-5.6.35-linux-glibc2.5-x86_64.tar.gz  # Source tarball
+    dest: /tmp  # Destination directory
+    copy: yes  # Copy the tarball to the destination directory
+
+  # Module: unarchive
+  # Options:
+  #   src: Source tarball
+  #   dest: Destination directory
+  #   copy: Copy the tarball to the destination directory
+
+- name: Move MySQL package to specified directory
+  command: mv /tmp/mysql-5.6.35-linux-glibc2.5-x86_64 /usr/local/mysql
+  creates: /usr/local/mysql  # Check if the directory exists before running the command
+
+  # Module: command
+  # Options:
+  #   command: Command to execute
+  #   creates: Check if the directory exists before running the command
+
+- name: Change ownership of MySQL directory
+  file:
+    path: /usr/local/mysql  # Path to the directory
+    owner: mysql  # New owner
+    group: mysql  # New group
+    recurse: yes  # Recursively change ownership
+
+  # Module: file
+  # Options:
+  #   path: Path to the directory
+  #   owner: New owner
+  #   group: New group
+  #   recurse: Recursively change ownership
+
+- name: Add MySQL library to ld.so.conf
+  lineinfile:
+    dest: /etc/ld.so.conf  # Destination file
+    line: /usr/local/mysql/lib/  # Line to add
+
+  # Module: lineinfile
+  # Options:
+  #   dest: Destination file
+  #   line: Line to add
+
+- name: Run ldconfig
+  command: /sbin/ldconfig
+
+  # Module: command
+  # Options:
+  #   command: Command to execute
+
+- name: Create MySQL data directories
+  file:
+    path: /data/mysql/3306/{{ item }}  # Path to the directory
+    state: directory  # Create the directory
+    owner: mysql  # Owner
+    group: mysql  # Group
+  with_items:
+    - data
+    - logs
+    - tmp
+
+  # Module: file
+  # Options:
+  #   path: Path to the directory
+  #   state: Create the directory
+  #   owner: Owner
+  #   group: Group
+  #   with_items: List of directories to create
+
+- name: Copy MySQL configuration file
+  copy:
+    src: /etc/my.cnf  # Source file
+    dest: /etc/my.cnf  # Destination file
+
+  # Module: copy
+  # Options:
+  #   src: Source file
+  #   dest: Destination file
+
+- name: Copy MySQL configuration file to MySQL directory
+  copy:
+    src: /etc/my.cnf  # Source file
+    dest: /usr/local/mysql/my.cnf  # Destination file
+
+  # Module: copy
+  # Options:
+  #   src: Source file
+  #   dest: Destination file
+
+- name: Initialize MySQL database
+  command: /usr/local/mysql/scripts/mysql_install_db --user=mysql --basedir=/usr/local/mysql --datadir=/data/mysql/3306/data
+
+  # Module: command
+  # Options:
+  #   command: Command to execute
+
+- name: Add MySQL bin directory to system path
+  lineinfile:
+    dest: /etc/profile  # Destination file
+    line: export PATH=$PATH:/usr/local/mysql/bin/  # Line to add
+
+  # Module: lineinfile
+  # Options:
+  #   dest: Destination file
+  #   line: Line to add
+
+- name: Source system profile
+  shell:
+    executable: /bin/bash  # Shell to use
+    source: /etc/profile  # File to source
+
+  # Module: shell
+  # Options:
+  #   executable: Shell to use
+  #   source: File to source
+
+- name: Copy MySQL service file to init directory
+  command: cp -f /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld
+
+  # Module: command
+  # Options:
+  #   command: Command to execute
+
+- name: Add MySQL service to system startup
+  command: /sbin/chkconfig --add mysqld
+
+  # Module: command
+  # Options:
+  #   command: Command to execute
+
+- name: Enable MySQL service on system startup
+ 
