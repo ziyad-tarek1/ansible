@@ -594,3 +594,6 @@ In this mode, Ansible only checks the syntax of the playbook to ensure it is err
   * It's akin to having a seasoned Ansible mentor guiding you, providing valuable 
   insights, and catching issues that might have slipped past your notice.
 
+``` bash
+  ansible-lint style_example.yml
+```
