@@ -560,8 +560,37 @@ finally how to run the playbook
  ansible-playbook playbook.yml
 ```
 
-## Verifying Playbooks
+### Verifying Ansible Playbooks
 
+You can verify Ansible playbooks in three different modes:
 
+#### 1. Check Mode ("Dry Run")
 
+Check mode allows you to simulate the execution of a playbook without making any changes to the target hosts. This is useful for understanding what changes would be made.
+
+```sh
+ansible-playbook playbook.yml --check
+```
+Note: Not all Ansible modules support check mode. If a module does not support this mode, it will be skipped during the dry run operation.
+
+#### 2. Diff Mode
+Diff mode provides a before-and-after comparison of the changes that would be made by the playbook. This helps you understand and verify the impact of playbook changes before applying them.
+  ``` sh
+ ansible-playbook playbook.yml --check --diff
+```
+#### 3. Syntax Check
+In this mode, Ansible only checks the syntax of the playbook to ensure it is error-free. This is useful for catching syntax errors before execution.
+
+  ``` sh
+ ansible-playbook playbook.yml  --syntax-check
+```
+
+## Ansible-lint✨
+
+  * Ansible Lint is a command-line tool that performs linting on Ansible playbooks, roles, 
+  and collections. 
+  * It checks your code for potential errors, bugs, stylistic errors, and suspicious 
+  constructs. 
+  * It's akin to having a seasoned Ansible mentor guiding you, providing valuable 
+  insights, and catching issues that might have slipped past your notice.
 
