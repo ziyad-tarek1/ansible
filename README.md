@@ -468,20 +468,99 @@ Or, you can disable it directly in your playbook:
       debug:
         msg: "This task runs without gathering facts."
 ```
-## Ansible Playbooks
+# Ansible Configuration Language
 
-this is ansible configuration language where we tell ansible what it should do
+Ansible uses a configuration language where we tell Ansible what it should do. The primary components of an Ansible playbook include:
 
-Playbook –A single YAML file
-  * Play –Defines a set of activities 
-  (tasks) to be run on hosts
-  * Task –An action to be performed on the host
-    * ⮚Execute a command
-    * ⮚Run a script
-    * ⮚Install a package
-    * ⮚Shutdown/Restart
+## Playbook
 
+A single YAML file that contains one or more plays.
 
+### Play
+
+Defines a set of activities (tasks) to be run on hosts.
+
+### Task
+
+An action to be performed on the host, such as:
+
+- Execute a command
+- Run a script
+- Install a package
+- Shutdown/Restart
+
+## Example Playbook
+
+Here is an example of a simple playbook:
+
+```yaml
+- name: Play 1
+  hosts: localhost
+  tasks:
+    - name: Execute command 'date'
+      command: date
+      
+    - name: Execute script on server
+      script: test_script.sh
+      
+    - name: Install httpd service
+      yum: 
+        name: httpd
+        state: present
+        
+    - name: Start web server
+      service:
+        name: httpd
+        state: started
+```
+#### Splitting into Multiple Plays
+You can also split the playbook into two plays in the same file:
+remember that this each playbook will be a list of dictinory 
+
+``` yaml
+
+- name: Play 2
+  hosts: localhost
+  tasks:
+    - name: Execute command 'date'
+      command: date
+      
+    - name: Execute script on server
+      script: test_script.sh
+      
+    - name: Install web service
+      yum: 
+        name: httpd
+        state: present
+        
+    - name: Start web server
+      service:
+        name: httpd
+        state: started
+```
+# Ansible Modules
+
+The different actions run by tasks in Ansible are called **modules**. Modules are the building blocks of Ansible tasks and allow you to perform various operations on your managed hosts.
+
+## Getting Information on Ansible Modules
+
+To get information on the available Ansible modules, you can refer to the official documentation or run the following commands in your terminal:
+
+### General Information on Modules
+
+```bash
+ansible-doc -l  # This will retrieve a list of all available modules
+
+ansible-doc <Module_Name>  # Replace <Module_Name> with the name of the module
+```
+
+finally how to run the playbook
+
+``` sh
+ ansible-playbook playbook.yml
+```
+
+## Verifying Playbooks
 
 
 
