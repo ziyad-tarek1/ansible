@@ -33,6 +33,16 @@ Below are examples of INI-style Ansible inventory configurations for personal do
   ``` ini
   #web ansible_host=server1.company.com ansible_connection=ssh ansible_ssh_pass=*Password*
   ```
+
+  ### general example
+
+  ```ini
+web1 ansible_host=server1.company.com ansible_connection=ssh ansible_user=root ansible_ssh_pass=Password123!
+web2 ansible_host=server2.company.com ansible_connection=ssh ansible_user=root ansible_ssh_pass=Password123!
+web3 ansible_host=server3.company.com ansible_connection=ssh ansible_user=root ansible_ssh_pass=Password123!
+
+db1 ansible_host=server4.company.com ansible_connection=winrm ansible_user=administrator ansible_password=Dbp@ss123!
+  ```
   
   ### Localhost Connection
   Specifies that the connection to localhost will use the localhost connection type.
