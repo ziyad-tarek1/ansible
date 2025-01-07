@@ -932,3 +932,95 @@ ansible-galaxy collection install amazon.aws
 
 ### Introduction to Templating
 
+Using a template in Ansible allows you to create configuration files where user-defined inputs are stored in a variable file. You can reference these variables by their keys in the configuration file, making it easy to manage configurations dynamically.
+
+#### Example
+
+- **Template**: This is the configuration file template that uses Jinja2 syntax to reference variables.
+
+```yaml
+[mysqld]
+innodb-buffer-pool-size={{ pool_size }}
+datadir={{ datadir }}
+user={{ mysql_user }}
+symbolic-links={{ link_id }}
+port={{ mysql_port }}
+```
+-Variables: This is a separate YAML file that defines the variables used in the template.
+```yaml
+pool_size: 5242880
+datadir: /var/lib/mysql
+mysql_user: mysql
+link_id: 0
+mysql_port: 3306
+ ```
+ - Output: When the template is rendered with the provided variables, the output will look like this:
+ ```yaml
+[mysqld]
+innodb-buffer-pool-size=5242880
+datadir=/var/lib/mysql
+user=mysql
+symbolic-links=0
+port=3306
+ ```
+
+ Explanation
+Template File: The template file uses Jinja2 syntax (e.g., {{ variable_name }}) to insert variable values into the configuration file dynamically.
+
+Variables File: The variables file contains key-value pairs that define the values for the placeholders in the template.
+
+Rendered Output: When the template is processed by Ansible, it replaces the placeholders with the actual values from the variables file, resulting in a complete configuration file.
+
+
+### Notes:
+- The example provided illustrates how to use Jinja2 templating in Ansible to create configuration files dynamically.
+- Templating is particularly useful for managing configurations in environments where settings may change frequently or differ between deployments.
+
+Templating in Ansible is a powerful feature that allows you to create dynamic configuration files based on user-defined variables. This approach enhances flexibility and maintainability, making it easier to manage configurations across different environments.
+
+### Jinja2
+
+Jinja2 is a powerful templating engine for Python that allows for dynamic content generation. It provides features for string manipulation, filters, loops, and conditions.
+
+#### String Manipulation | Filters
+
+You can manipulate strings using filters in Jinja2. Here are some examples:
+
+- **Basic Variable Usage**:
+  ```jinja
+  The name is {{ my_name }}  => The name is Bond
+  The name is {{ my_name| upper }} => The name is BOND
+  The name is {{ my_name| lower }} => The name is bond
+  The name is {{ my_name| title }} => The name is Bond
+  The name is {{ my_name| replace (“Bond”, “Bourne”) }} => The name is Bourne
+  The name is {{ first_name| default(“James”) }} {{ my_name}} => The name is James Bond
+  ```
+
+- **Filters -List and set**
+```jinja
+ {{ [ 1, 2, 3 ] | min }}            => 1
+ {{ [ 1, 2, 3 ] | max }}                  => 3
+ {{ [ 1, 2, 3, 2 ] | unique }}              => 1, 2, 3
+ {{ [ 1, 2, 3, 4 ] | union( [ 4, 5 ] ) }}     => 1, 2, 3, 4, 5
+ {{ [ 1, 2, 3, 4 ] | intersect( [ 4, 5 ] ) }}  => 4
+ {{  100 | random }}  => Random number
+ {{ [“The”, “name”, “is”, “Bond”] | join(“ “) }}  => The name is Bond
+```
+ - **Loops**
+```jinja
+  {% for number in [0,1,2,3,4] %}
+ {{ number }}
+ {% endfor %}
+```
+
+ - **Conditions**
+
+```jinja
+ {% for number in [0,1,2,3,4] %}
+ {% if number == 2 %}
+ {{ number }}
+ {% endif %}
+ {% endfor %}
+ ```
+
+ 
