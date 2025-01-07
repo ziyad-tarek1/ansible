@@ -1023,4 +1023,220 @@ You can manipulate strings using filters in Jinja2. Here are some examples:
  {% endfor %}
  ```
 
- 
+ ------------------------------------------------------------------------------------
+
+ # Ansible Advanced 
+
+ ## Playbook run options
+
+1- dry run option 
+```yaml
+ansible-playbook play1.yaml --check
+```
+
+2- start at option
+
+``` yaml
+ansible-playbook play1.yaml --start-at-task "task name"
+
+```
+
+3- tags
+
+* you can add tags to your tasks and call it when you run your playbook
+
+```yaml 
+ansible-playbook play.yaml --tag "hashtag"
+```
+
+* Or use it to skip a certine task taged 
+
+```yaml
+asnible-playbook --skip-tag "hashtag"
+```
+
+## Facts
+To print Facts from the ansibe playbook
+
+```yaml
+---
+- name: Print hello message
+  hosts: all
+  tasks:
+    - name: Display ansible_facts
+      debug:
+        var: ansible_facts
+```
+
+to chang this behaviour you can add gather_facts: no in the playbook or change the defualt configuration at /etc/ansible/ansible.cfg to implicit
+
+**Alternatively, you can set the environment variable ANSIBLE_GATHERING to explicit:**
+export ANSIBLE_GATHERING=explicit
+
+
+## Create and distribute SSH keys to managed nodes
+
+#### Step 1: Generate SSH Keys
+
+First, you need to generate an SSH key pair on your Ansible control machine (the machine from which you will run Ansible). You can do this using the following command:
+
+```sh
+ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -C "your_email@example.com"
+```
+
+#### Step 2: Copy the Public Key to Managed Nodes
+
+Once you have generated the SSH key pair, you need to copy the public key (~/.ssh/id_rsa.pub) to each managed node. You can use the ssh-copy-id command for this purpose:
+
+```sh
+ssh-copy-id -i ~/.ssh/id_rsa.pub user1@172.20.1.100
+ssh-copy-id -i ~/.ssh/id_rsa.pub user1@172.20.1.101
+```
+This command will prompt you for the password of user1 on each managed node. After entering the password, the public key will be added to the ~/.ssh/authorized_keys file on the managed nodes.
+
+#### Step 3: Verify SSH Access
+
+After copying the public key, you should verify that you can SSH into the managed nodes without being prompted for a password:
+
+```sh
+ssh user1@172.20.1.100
+ssh user1@172.20.1.101
+```
+
+Step 4: Update Ansible Inventory
+Now that you have SSH access set up, you can use the following Ansible inventory configuration to manage your nodes:
+
+```sh
+[web]
+web1 ansible_host=172.20.1.100 ansible_user=user1 ansible_ssh_private_key_file=/some-path/private-key
+web2 ansible_host=172.20.1.101 ansible_user=user1 ansible_ssh_private_key_file=/some-path/private-key
+```
+
+##### Explanation of Inventory Configuration:
+* Group Header: The line [web] defines a group called web.
+* Host Definitions: Each host (web1 and web2) is defined on a single line, followed by the necessary variables.
+* Variables:
+  * ansible_host: The IP address of the managed node.
+  * ansible_user: The username used to connect to the managed node.
+  * ansible_ssh_private_key_file: The path to the private key file used for SSH authentication.
+
+#### Step 5: Run Ansible Playbooks
+You can now run Ansible playbooks targeting the web group. For example, to check connectivity, you can use:
+```bash
+ansible -i /etc/ansible/hosts web -m ping
+```
+
+## Validate a working configuration using ad-hoc Ansible commands
+
+Ansible ad-hoc commands provide a quick and easy way to test your Ansible setup or run a single module on one or more target hosts. This is particularly useful for validating connectivity and executing simple tasks without the need to create a full playbook.
+
+1- Ping Command: The ping module is a simple way to check if the target host is reachable. It does not use ICMP ping; instead, it checks if Ansible can connect to the host.
+
+```sh
+ansible -m ping target1
+```
+Replace target1 with the name of your target host or group defined in your inventory.
+If the command is successful, you should see a response indicating that the host is reachable.
+
+2- Run a Command: You can use the command module to run any command on the target host. For example, to display the contents of the /etc/resolv.conf file, you can use
+```sh
+ansible -a 'cat /etc/resolv.conf '
+
+```
+This command will execute cat /etc/resolv.conf on target1 and display the output in your terminal.
+
+
+3- Gather System Information: You can gather system information using the setup module:
+
+```sh
+ansible -m setup target1
+```
+
+4- To ping all hosts defined in a specific inventory file and redirect the output to a text file, you can use:
+
+```sh
+ansible -m ping -i /home/thor/playbooks/inventory all > /tmp/ansible_all.txt
+```
+5- To run a command on a specific host (e.g., web1) and save the output to a text file, you can use:
+```
+ansible -m command -a date -i inventory web1 > /tmp/ansible_date.txt
+```
+
+## Privilege Escalation
+Privilege escalation in Ansible allows you to run tasks with elevated privileges, such as installing software or modifying system configurations. This is commonly done using sudo, but Ansible supports various methods for privilege escalation.
+
+
+
+1-  Become Super user (sudo):
+To run tasks as a superuser (using sudo), you can use the become directive in your playbook. Here’s an example of how to install nginx:
+
+```yaml
+---
+- name: Install nginx
+  become: yes
+  hosts: all
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: latest
+ ```
+2- Become Method – sudo (pfexec, doas, ksu, runas):
+You can specify the method of privilege escalation using the become_method directive. For example, if you want to use doas instead of sudo, you can do it like this:
+
+
+```yaml
+---
+- name: Install nginx
+  become: yes
+  become_method: doas
+  hosts: all
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: latest
+```
+3-  Become another user
+You can also run tasks as a different user by specifying the become_user directive. For example, if you want to install nginx as the user nginx, you can configure your inventory and playbook as follows:
+
+
+```sh
+# inventory
+lamp-dev1 ansible_host=172.20.1.100 ansible_user=admin ansible_become=yes ansible_become_user=nginx```
+
+
+```yaml
+---
+- name: Install nginx
+  become: yes
+  become_user: nginx
+  hosts: all
+  tasks:
+    - name: Install nginx
+      yum:
+        name: nginx
+        state: latest
+```
+4- Configuration File:
+The Ansible configuration file (ansible.cfg) allows you to set default behaviors for Ansible, including privilege escalation settings. You can specify the default method of privilege escalation and the user to become.
+
+```sh
+[defaults]
+# Enable privilege escalation by default
+become = True
+
+# Set the default method for privilege escalation
+become_method = doas
+
+# Set the default user to become
+become_user = nginx
+
+# Specify the inventory file location (if needed)
+inventory = /path/to/your/inventory
+```
+
+5- comand line argument
+```sh
+ ansible-playbook --become--become-method=doas--become-user=nginx--ask-become-pass
+```
