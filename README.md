@@ -1240,3 +1240,231 @@ inventory = /path/to/your/inventory
 ```sh
  ansible-playbook --become--become-method=doas--become-user=nginx--ask-become-pass
 ```
+
+
+## Additional Modules
+
+#### Packages & Service
+
+
+```yaml
+---
+- name: Install web on CentOS
+  hosts: all
+  tasks:
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: installed
+```
+
+```yaml
+---
+- name: Install web on Ubuntu
+  hosts: all
+  tasks:
+    - name: Install apache2
+      apt:
+        name: apache2
+        state: installed
+```
+
+```yaml
+---
+- name: Install web on Any Host
+  hosts: all
+  tasks:
+    - name: Install httpd or apache2
+      package:  # This module will use the host's package manager, whether it is CentOS or Ubuntu (yum or apt)
+        name: 
+          - httpd   # Be careful with the name; some Linux distributions call it httpd, while others call it apache2
+          - apache2
+        state: installed
+        enabled: yes  # Ensure that the service will be enabled on the next boot
+```
+
+#### Firewall Rules
+
+```yaml
+---
+- name: Add Firewalld rule
+  hosts: all
+  tasks:
+    - name: Allow HTTP traffic on port 8080
+      firewalld:
+        port: 8080/tcp
+        service: http
+        source: 192.0.0.0/24
+        zone: public
+        state: enabled
+        permanent: yes
+        immediate: yes
+```
+
+
+#### Storage
+
+```yaml
+
+---
+- name: Manage LVM Storage
+  hosts: all
+  tasks:
+    - name: Create LVM Volume Group
+      lvg:
+        vg: vg1
+        pvs: /dev/sdb1,/dev/sdb2
+
+    - name: Create LVM Logical Volume
+      lvol:
+        vg: vg1
+        lv: lvol1
+        size: 2g
+
+```
+
+
+#### File System
+
+```yaml
+
+---
+- name: Manage LVM Storage
+  hosts: all
+  tasks:
+    - name: Create Filesystem
+      filesystem:
+        fstype: ext4
+        dev: /dev/vg1/lvol1
+
+    - name: Mount Filesystem
+      mount:
+        fstype: ext4
+        src: /dev/vg1/lvol1
+        path: /opt/app
+        state: mounted
+```
+
+#### File
+
+```yaml
+
+---
+- name: Create Directory and File
+  hosts: all
+  tasks:
+    - name: Create Directory
+      file:
+        path: /opt/app/web
+        state: directory
+
+    - name: Create File
+      file:
+        path: /opt/app/web/index.html
+        state: touch
+        owner: app-owner
+        group: app-owner
+        mode: '0644
+```
+#### Archive
+
+```yaml
+---
+- name: Compress and Uncompress a Folder
+  hosts: all
+  tasks:
+    - name: Compress a folder
+      archive:
+        path: /opt/app/web
+        dest: /tmp/web.gz
+        format: gz  # Specify the format for compression (gz, zip, tar, bz2, xz)
+
+    - name: Uncompress a folder
+      unarchive:
+        src: /tmp/web.gz # By defualt this is the src on the controller machine if you want to use a src on the target machine you should enable it at  remote_src
+        dest: /opt/app/web
+        remote_src: yes  # Indicates that the source file is already on the remote host
+```
+
+#### Ansible Playbook to Create a Scheduled Cron Job
+
+```yaml
+---
+- name: Create a scheduled task
+  hosts: all
+  tasks:
+    - name: Run daily health report
+      cron:
+        name: "Run daily health report"
+        job: "/bin/sh /opt/scripts/health.sh"
+        month: "2"
+        day: "19"
+        hour: "8"
+        minute: "10"  # step value is */2 every 2 min
+      # weekday: * # valuse 0 to sunday and 6 to satarday
+# if you want to spacify a day use weekday 
+```
+
+#### Users and Groups
+
+##### Ansible Playbook to Create User, Group, and Configure SSH Keys
+
+
+```yaml
+
+---
+- name: Create User and Group
+  hosts: all
+  tasks:
+    - name: Create a group
+      group:
+        name: developers
+
+    - name: Create a user Maria
+      user:
+        name: maria
+        uid: 1001
+        group: developers
+        shell: /bin/bash
+
+- name: Configure SSH Keys
+  hosts: all
+  tasks:
+    - name: Configure SSH keys for user Maria
+      authorized_keys:
+        user: maria
+        state: present
+        key: |
+          ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAA
+          BAQC4WKn4K2G3iWg9HdCGo34gh+……root@97a1b9c3a
+
+```
+
+
+
+## Ansible Vault
+
+- if you store the ansibe_host=IP and ansible_ssh_pass or ansible_password and ansible_user in the inventory data in a plain text format and this is not a best practice  you should encrypt this data using ansible vault and you have multible ways
+
+1- if you already have an invitory file 
+```bash
+ansible-vault encrypt (inventory) 
+```
+- you will asked for the password to encrypt the file 
+
+- if you want to use this inventory file now you sholud add the option <--ask-vault-pass> to the playbook command
+
+```bash
+ $ ansible-playbook playbook.yml–i inventory –-ask-vault-pass
+
+ $ ansible-playbook playbook.yml–i inventory –vault-password-file ~./vault_pass.txt
+ $ ansible-playbook playbook.yml–i inventory –vault-password-file ~./vault_pass.py
+```
+
+- to view the content of the encrypted file or to create it 
+
+``` bash
+ $ ansible-vault view inventory
+
+ $ ansible-vault create inventory
+```
